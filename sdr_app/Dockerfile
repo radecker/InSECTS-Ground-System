@@ -1,12 +1,12 @@
-FROM python:3.9
+FROM python:3.7
 
 # working directory
 WORKDIR /usr/src/app
 
 # add the python application
-ADD hal.py .
+COPY sdr_app.py .
 ADD message_pb2.py .
-ADD tcp_server.py .
+ADD tcp_client.py .
 ADD udp_client.py .
 
 # copy requirements file to working directory
@@ -16,4 +16,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["python", "./hal.py"]
+ENTRYPOINT ["python", "./sdr_app.py"]
