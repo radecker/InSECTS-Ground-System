@@ -15,10 +15,18 @@ class LoggerService(BaseApp):
         self.log = open(f"network_traffic.log", 'w')
 
     def run(self):
+
         if len(self.telemetry_queue):
-            print(datetime.datetime.now().ctime())
+            now = datetime.datetime.now()
+            date=now.strftime('%Y-%m-%d')
+            time=now.strftime('%H:%M:%S %Z')
+            print(date + time)
             print(self.telemetry_queue.pop())
         if len(self.command_queue):
+            now = datetime.datetime.now()
+            date=now.strftime('%Y-%m-%d')
+            time=now.strftime('%H:%M:%S %Z')
+            print(date + time)
             print(datetime.datetime.now().ctime())
             print(self.command_queue.pop())
 
