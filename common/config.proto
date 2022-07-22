@@ -1,0 +1,22 @@
+// AUTO-GENERATED -- DO NOT MODIFY -- AUTO-GENERATED
+// Generated 2022-07-22 00:25:18.420413
+
+syntax = "proto2";
+package InSECTS;
+
+message ConfigParams {
+    optional string version = 1;
+    optional bool virtual_machine = 2;
+    optional bool emulate_sdr = 3;
+    optional bool emulate_arduino = 4;
+    optional bool emulate_thermal = 5;
+    optional double telemetry_freq = 6;
+    optional string command_multicast_ip = 7;
+    optional int32 command_multicast_port = 8;
+    optional string telemetry_multicast_ip = 9;
+    optional int32 telemetry_multicast_port = 10;
+    optional string sdr_tcp_client_ip = 11;
+    optional int32 sdr_tcp_client_port = 12;
+    optional string arduino_address = 13;
+    optional int32 serial_baudrate = 14;
+}

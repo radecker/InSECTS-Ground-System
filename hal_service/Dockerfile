@@ -1,11 +1,15 @@
-FROM python:3.7
+FROM python:3.9
 
 # working directory
 WORKDIR /usr/src/app
 
 # add the python application
-COPY sdr_app.py .
+ADD hal_service.py .
 ADD message_pb2.py .
+ADD config_pb2.py .
+ADD BaseApp.py .
+ADD Arduino.py .
+ADD TCPServer.py .
 ADD TCPClient.py .
 ADD UDPClient.py .
 
@@ -16,4 +20,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["python", "./sdr_app.py"]
+ENTRYPOINT ["python", "./hal_service.py"]

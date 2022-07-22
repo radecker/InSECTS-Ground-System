@@ -2,37 +2,34 @@ syntax = "proto2";
 
 package InSECTS;
 
-// Every message should be wrapped in the Message message type
+import "config.proto";
+
+// Every message should be wrapped in the Message type or it wont send/receive
 message Message {
     optional string destination = 1;
     optional string sender = 2;
 
-    optional bool disconnect = 3;
+    optional bool ack = 3;
+    optional bool disconnect = 4;
 
-    optional Telemetry telemetry = 4;
     optional Command command = 5;
+    optional Telemetry telemetry = 6;
+
+    optional ConfigParams config_params = 7;
 }
 
 //---------------------------------------------
 //          Command Messages Here
 //---------------------------------------------
 message Command {
-    optional ThermalCommand thermal_command = 3;
-    optional SetAutonomy set_autonomy = 4;
-}
-
-message ThermalCommand {
     optional SetServoPosition set_servo_position = 1;
-    optional FanControl fan_control = 2;
+    optional SetFanSpeed set_fan_speed = 2;
+    optional SetFanState set_fan_state = 3;
+    optional SetAutonomyState set_autonomy_state = 4;
 }
 
 message SetServoPosition {
     optional double servo_pos = 1;
-}
-
-message FanControl {
-    optional SetFanSpeed set_fan_speed = 1;
-    optional SetFanState set_fan_state = 2;
 }
 
 message SetFanSpeed {
@@ -40,36 +37,31 @@ message SetFanSpeed {
 }
 
 message SetFanState {
-    optional State fan_state = 1;
+    optional bool fan_state = 1;
 }
 
-message SetAutonomy {
-    optional State autonomy_state = 1;
+message SetAutonomyState {
+    optional bool autonomy_state = 1;
 }
 
 //---------------------------------------------
 //          Telemetry Messages Here
 //---------------------------------------------
 message Telemetry {
-    optional ThermalTelemetry thermal_telemetry = 3;
+    optional TemperatureData temperature_data = 1;
+    optional FanSpeedData fan_speed_reading = 2;
 }
 
-message ThermalTelemetry {
-    repeated TemperatureReading temp_reading = 1;
-    repeated FanSpeedReading fan_speed_reading = 2;
-}
-
-message TemperatureReading {
+message TemperatureData {
     optional int32 sensor_id = 1;
     optional double sensor_value = 2;
 }
 
-message FanSpeedReading {
+message FanSpeedData {
     optional int32 fan_id = 1;
     optional double fan_speed = 2;
 }
 
-enum State {
-    OFF = 0;
-    ON = 1;
-}
+//---------------------------------------------
+//          Infrastructure Messages Here
+//---------------------------------------------
