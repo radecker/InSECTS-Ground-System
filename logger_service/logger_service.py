@@ -8,10 +8,9 @@ import time
 class LoggerService(BaseApp):
     def __init__(self) -> None:
         self.log = None
-        super().__init__("vehicle.logger_service")
+        super().__init__("ground.logger_service")
 
     def setup(self):
-        print("Logger SETUP!")
         print(self.config_params)
         self.log = open(f"network_traffic.log", 'w')
 

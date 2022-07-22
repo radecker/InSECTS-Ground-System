@@ -21,7 +21,7 @@ Use Cases:
 class HalService(BaseApp):
     def __init__(self) -> None:
         self.arduino = None
-        super().__init__(id="vehicle.hal_service")
+        super().__init__(id="ground.hal_service")
 
     def _send_to_arduino(self):
         if self.config_params.emulate_arduino:

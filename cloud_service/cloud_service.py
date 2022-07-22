@@ -7,21 +7,20 @@ import message_pb2 as proto
 import time
 
 
-class AutonomyApp(BaseApp):
+class CloudService(BaseApp):
     def __init__(self) -> None:
-        super().__init__("vehicle.autonomy_app")
+        super().__init__("ground.cloud_service")
 
     def setup(self):
-        print("SETUP!")
         print(self.config_params)
 
     def run(self):
-        print("Autonomy Run!")
-        # Check for command messages
-        # Check for telemetry messages
-        time.sleep(1)
+        pass
+
+    def shutdown(self):
+        pass
 
 
 if __name__ == "__main__":
-    AutonomyApp()   # Runs the app
+    CloudService()   # Runs the service
     

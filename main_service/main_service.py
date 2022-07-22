@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Send out the config params on the startup multicast group
     time.sleep(3)   # 3 sec delay to wait for other services to start listening
-    udp_client = UDPClient("main_service")
+    udp_client = UDPClient("ground.main_service")
     udp_client.add_sender(group=STARTUP_IP, port=STARTUP_PORT)
     udp_client.add_listener(group=STARTUP_IP, port=STARTUP_PORT)
     udp_client.send(msg, group=STARTUP_IP, port=STARTUP_PORT)

@@ -14,7 +14,7 @@ class SDRApp(BaseApp):
     def __init__(self, id: str) -> None:
         self.tcp_client = None
         self.tcp_send_queue = queue.Queue()
-        super().__init__(id)
+        super().__init__("ground.sdr_app")
 
     def setup(self):
         ip = self.config_params.sdr_tcp_client_ip
