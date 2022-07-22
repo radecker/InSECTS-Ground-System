@@ -1,5 +1,5 @@
 // AUTO-GENERATED -- DO NOT MODIFY -- AUTO-GENERATED
-// Generated 2022-07-22 00:35:50.953451
+// Generated 2022-07-22 16:10:55.228500
 
 syntax = "proto2";
 package InSECTS;
@@ -15,8 +15,8 @@ message ConfigParams {
     optional int32 command_multicast_port = 8;
     optional string telemetry_multicast_ip = 9;
     optional int32 telemetry_multicast_port = 10;
-    optional string sdr_tcp_client_ip = 11;
-    optional int32 sdr_tcp_client_port = 12;
+    optional string sdr_tcp_server_ip = 11;
+    optional int32 sdr_tcp_server_port = 12;
     optional string arduino_address = 13;
     optional int32 serial_baudrate = 14;
 }

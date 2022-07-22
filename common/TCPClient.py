@@ -32,8 +32,10 @@ class TCPClient():
         self.client.connect(self.address)
         thread = threading.Thread(target=self.__receive)
         thread.start()
+        msg = message_pb2.Message()
+        self.send(msg)  # Allows the server to store the name of this client
 
-    def send(self, msg: message_pb2.Message, dst: str):
+    def send(self, msg: message_pb2.Message, dst="all"):
         msg.sender = self.sender
         msg.destination = dst
         data = msg.SerializeToString()

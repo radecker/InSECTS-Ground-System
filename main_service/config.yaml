@@ -6,14 +6,14 @@
   emulate_thermal: false  # Should the thermal system be emulated
   telemetry_freq: 1.0     # Hz
 
-  command_multicast_ip: "224.1.1.10"
-  command_multicast_port: 5050
-  telemetry_multicast_ip: "224.1.1.20"
-  telemetry_multicast_port: 5060
+  command_multicast_ip: "224.1.1.30"
+  command_multicast_port: 5051
+  telemetry_multicast_ip: "224.1.1.40"
+  telemetry_multicast_port: 5061
 
   # ---- sdr_app ----
-  sdr_tcp_client_ip: "127.0.0.1"
-  sdr_tcp_client_port: 5000
+  sdr_tcp_server_ip: "127.0.0.1"
+  sdr_tcp_server_port: 5000
 
   # ---- hal_service ----
   arduino_address: "/dev/ttyACM0"

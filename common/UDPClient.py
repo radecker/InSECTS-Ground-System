@@ -56,8 +56,12 @@ class UDPClient():
                 self.__receive_queues[(group, port)].put(msg)
         sock.close()
 
-    def send(self, msg: proto.Message, group: str, port: int, destination="all") -> None:
-        msg.sender = self.id
+    def send(self, msg: proto.Message, group: str, port: int, sender=None, destination="all") -> None:
+        # msg.sender = self.id if sender is None else sender
+        if sender is None:
+            msg.sender = self.id
+        else:
+            msg.sender = sender
         msg.destination = destination
         if not (group, port) in self.__send_queues:
             print(f"[UDP Client] ERROR: first add sender on {group, port}")

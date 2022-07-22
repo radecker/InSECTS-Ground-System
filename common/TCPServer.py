@@ -57,14 +57,14 @@ class TCPServer():
                     self.message_queue.put(msg)
         conn.close()
 
-    def send(self, msg: message_pb2.Message, dst: str):
+    def send(self, msg: message_pb2.Message, dst: str, client: str):
         msg.sender = self.sender
         msg.destination = dst
         data = msg.SerializeToString()
         msg_length = len(data)
         send_length = str(msg_length).encode(self.header_format)
         send_length += b' ' * (self.header - len(send_length))
-        conn = self.connections[dst]
+        conn = self.connections[client]
         conn.send(send_length)
         conn.send(data)
 

@@ -10,8 +10,8 @@ import config_pb2
 import time
 import subprocess
 
-STARTUP_IP = "224.1.1.99"
-STARTUP_PORT = 5099
+STARTUP_IP = "224.1.1.90"
+STARTUP_PORT = 5090
 
 
 def ConvertConfigDictToProto(config: dict) -> message_pb2.Message:
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     udp_client.add_sender(group=STARTUP_IP, port=STARTUP_PORT)
     udp_client.add_listener(group=STARTUP_IP, port=STARTUP_PORT)
     udp_client.send(msg, group=STARTUP_IP, port=STARTUP_PORT)
-    time.sleep(2)
+    time.sleep(10)
     msg = message_pb2.Message()
     cmd = message_pb2.Command()
     sp = message_pb2.SetServoPosition()

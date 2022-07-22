@@ -30,8 +30,8 @@ class BaseApp():
         self.command_queue = []
         self.telemetry_queue = []
 
-        self.__startup_group = "224.1.1.99"
-        self.__startup_port = 5099
+        self.__startup_group = "224.1.1.90"
+        self.__startup_port = 5090
         self.__command_group = None
         self.__command_port = None
         self.__telemetry_group = None
@@ -84,11 +84,11 @@ class BaseApp():
         self.udp_client.add_listener(group=self.__telemetry_group, port=self.__telemetry_port)
         self.udp_client.add_sender(group=self.__telemetry_group, port=self.__telemetry_port)
 
-    def send_command(self, msg: proto.Message, destination="all"):
-        self.udp_client.send(msg, self.__command_group, self.__command_port, destination)
+    def send_command(self, msg: proto.Message, sender=None, destination="all"):
+        self.udp_client.send(msg, self.__command_group, self.__command_port, sender, destination)
 
-    def send_telemetry(self, msg: proto.Message, destination="all"):
-        self.udp_client.send(msg, self.__telemetry_group, self.__telemetry_port, destination)
+    def send_telemetry(self, msg: proto.Message, sender=None, destination="all"):
+        self.udp_client.send(msg, self.__telemetry_group, self.__telemetry_port, sender, destination)
 
     def setup(self):
         """Runs once prior to Run() loop
