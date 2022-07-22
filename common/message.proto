@@ -16,6 +16,7 @@ message Message {
     optional Telemetry telemetry = 6;
 
     optional ConfigParams config_params = 7;
+    optional bool request_config = 8;
 }
 
 //---------------------------------------------

@@ -22,18 +22,17 @@ class TCPClient():
         self.active = False
         self.message_queue = queue.Queue()
 
-    def start(self) -> None:
-        self.active = True
-        thread = threading.Thread(target=self.__start)
-        thread.start()
-
-    def __start(self) -> None:
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect(self.address)
-        thread = threading.Thread(target=self.__receive)
-        thread.start()
-        msg = message_pb2.Message()
-        self.send(msg)  # Allows the server to store the name of this client
+    def connect(self) -> None:
+        try:
+            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client.connect(self.address)
+            msg = message_pb2.Message()
+            self.send(msg)  # Allows the server to store the name of this client
+            thread = threading.Thread(target=self.__receive)
+            thread.start()
+            self.active = True
+        except:
+            print(f"[TCPClient] Could not establish connection to server {self.address}")
 
     def send(self, msg: message_pb2.Message, dst="all"):
         msg.sender = self.sender

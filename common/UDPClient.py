@@ -57,7 +57,6 @@ class UDPClient():
         sock.close()
 
     def send(self, msg: proto.Message, group: str, port: int, sender=None, destination="all") -> None:
-        # msg.sender = self.id if sender is None else sender
         if sender is None:
             msg.sender = self.id
         else:
