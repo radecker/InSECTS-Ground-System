@@ -61,11 +61,11 @@ class BaseApp():
             request = proto.Message()
             request.request_config = True
             self.udp_client.send(request, group=self.__startup_group, port=self.__startup_port, destination="main_service")
+            time.sleep(1)
             messages = self.udp_client.get_messages()
             for message in messages:
                 if message.HasField("config_params"):
                     self.config_params = message.config_params
-            time.sleep(1)
 
     def __ack_config(self):
         msg = proto.Message()
