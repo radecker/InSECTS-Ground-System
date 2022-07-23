@@ -6,15 +6,16 @@ from BaseApp import BaseApp
 import message_pb2 as proto
 import boto3
 import threading
+import datetime
 import time
 
 
 class CloudService(BaseApp):
     def __init__(self, table_name) -> None:
         self.table_name = table_name
-        self.db = boto3.resource('dynamodb')
-        self.table = self.db.Table(table_name)
-        self.client = boto3.client('dynamodb')
+        # self.db = boto3.resource('dynamodb')
+        # self.table = self.db.Table(table_name)
+        # self.client = boto3.client('dynamodb')
         super().__init__("ground.cloud_service")
 
     @property
@@ -26,12 +27,11 @@ class CloudService(BaseApp):
         )
         return response
 
-    def put(self, Sensor_Id='' , Temperature='' , Humidity='' , Date='' , Time=''):
+    def put(self, Sensor_Id='' , Temperature='' , Date='' , Time=''):
         self.table.put_item(
             Item={
                 'Sensor_Id':Sensor_Id,
                 'Temperature':Temperature,
-                'Humidity' :Humidity,
                 'Date' :Date,
                 'Time' :Time
             }
@@ -50,36 +50,29 @@ class CloudService(BaseApp):
         )
         return response
 
-    @staticmethod
-    def sensor_value():
-        pin = 23
-        sensor = Adafruit_DHT.DHT11
-        humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
+    def proto_to_cloud(self, msg: proto.Message):
+        id = msg.telemetry.temperature_data.sensor_id
+        temp = msg.telemetry.temperature_data.sensor_value
         now = datetime.datetime.now()
         date=now.strftime('%Y-%m-%d')
-        time=now.strftime('%H:%M:%S %Z')
-        if humidity is not None and temperature is not None:
-            print('Temp={0:0.1f}*C  Humidity={1:0.1f}%'.format(temperature, humidity) + 'Date=' + date + ' Time=' + time)
-        else:
-            print('Failed to get reading. Try again!')
-        return temperature, humidity, date, time
+        ctime=now.strftime('%H:%M:%S %Z')
+        # self.put(Sensor_Id=str(id), Temperature=str(temp), Date=str(date), Time=str(ctime))
+        print(f"Uploaded Sample on Cloud Id:{id} T:{temp} D:{date} T:{ctime}")
 
     def setup(self):
         pass
 
     def run(self):
-        global counter
-
-        threading.Timer(interval=10, function=self.run).start()
-        Temperature , Humidity , Date, Time = obj.sensor_value()
-        obj.put(Sensor_Id=str(counter), Temperature=str(Temperature), Humidity=str(Humidity), Date=str(Date), Time=str(Time))
-        counter = counter + 1
-        print("Uploaded Sample on Cloud T:{},H{} ".format(Temperature, Humidity) + 'D:' + Date + ' T:' + Time )
+        # Grab the latest telemetry and push to database
+        if len(self.telemetry_queue):
+            for msg in self.telemetry_queue:
+                if msg.HasField("telemetry"):
+                    self.proto_to_cloud(msg)
 
     def shutdown(self):
         pass
 
 
 if __name__ == "__main__":
-    CloudService()   # Runs the service
+    CloudService("FauxTemp")   # Runs the service
     
