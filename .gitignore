@@ -15,6 +15,9 @@
 *_service/BaseApp.py
 *_service/ConfigLoader.py
 *_service/Arduino.py
+common/config.proto
+common/config_pb2.py
+common/message_pb2.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
