@@ -34,8 +34,11 @@ class TCPClient():
         except:
             print(f"[TCPClient] Could not establish connection to server {self.address}")
 
-    def send(self, msg: message_pb2.Message, dst="all"):
-        msg.sender = self.sender
+    def send(self, msg: message_pb2.Message, sender=None, dst="all"):
+        if sender is None:
+            msg.sender = self.sender
+        else:
+            msg.sender = sender
         msg.destination = dst
         data = msg.SerializeToString()
         msg_length = len(data)
