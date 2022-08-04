@@ -11,10 +11,9 @@ import time
 
 
 class CloudService(BaseApp):
-    def __init__(self, table_name) -> None:
-        self.table_name = table_name
-        self.db = None
-        self.table = None
+    def __init__(self) -> None:
+        self.command_table = None
+        self.telem_table = None
         self.client = None
         super().__init__("ground.cloud_service")
 
@@ -28,7 +27,7 @@ class CloudService(BaseApp):
         return response
 
     def put(self, Sensor_Id='' , Temperature='' , Date='' , Time=''):
-        self.table.put_item(
+        self.telem_table.put_item(
             Item={
                 'Sensor_Id':Sensor_Id,
                 'Temperature':Temperature,
@@ -37,10 +36,10 @@ class CloudService(BaseApp):
             }
         )
 
-    def delete(self,Sensor_Id=''):
-        self.table.delete_item(
+    def delete_command(self, request_number):
+        self.command_table.delete_item(
             Key={
-                'Sensor_Id': Sensor_Id
+                'Request_Number': request_number
             }
         )
 
@@ -56,17 +55,57 @@ class CloudService(BaseApp):
         now = datetime.datetime.now()
         date=now.strftime('%Y-%m-%d')
         ctime=now.strftime('%H:%M:%S %Z')
-        if self.config_params.connect_to_database:
+        if self.config_params.connect_to_telemetry_database:
             self.put(Sensor_Id=str(id), Temperature=str(temp), Date=str(date), Time=str(ctime))
         print(f"Uploaded Sample on Cloud Id:{id} T:{temp} D:{date} T:{ctime}")
 
     def setup(self):
-        if self.config_params.connect_to_database:
-            self.db = boto3.resource('dynamodb')
-            self.table = self.db.Table(self.table_name)
+        if self.config_params.connect_to_command_database:
+            self.db = boto3.resource('dynamodb', region_name='us-east-1')
+            self.command_table = self.db.Table(self.config_params.command_database_name)
+            print("[Connected to command table]")
+        if self.config_params.connect_to_telemetry_database:
+            self.telem_table = self.db.Table(self.config_params.telemetry_database_name)
             self.client = boto3.client('dynamodb')
+            print("[Connected to telemetry table]")
         else:
             pass
+    
+    def get_commands(self):
+        reading = self.command_table.scan()
+        
+        return reading['Items']
+
+    def translate_command(self, command):
+        print(command)
+        msg = proto.Message()
+        cmd = proto.Command()
+        if "Autonomy_status" in command.keys():
+            scmd = proto.SetAutonomyState()
+            scmd.autonomy_state = bool(int(command["Autonomy_status"]))
+            cmd.set_autonomy_state.CopyFrom(scmd)
+            msg.command.CopyFrom(cmd)
+            print(msg)
+            self.send_command(msg)
+        msg = proto.Message()
+        cmd = proto.Command()
+        if "Fan_Speed" in command.keys():
+            scmd = proto.SetFanSpeed()
+            scmd.fan_speed = int(command["Fan_Speed"])
+            cmd.set_fan_speed.CopyFrom(scmd)
+            msg.command.CopyFrom(cmd)
+            print(msg)
+            self.send_command(msg)
+        msg = proto.Message()
+        cmd = proto.Command()
+        if "Trim_Position" in command.keys():
+            scmd = proto.SetServoPosition()
+            scmd.servo_pos = int(command["Trim_Position"])
+            cmd.set_servo_position.CopyFrom(scmd)
+            msg.command.CopyFrom(cmd)
+            print(msg)
+            self.send_command(msg)
+        self.delete_command(command["Request_Number"])
 
     def run(self):
         # Grab the latest telemetry and push to database
@@ -75,10 +114,17 @@ class CloudService(BaseApp):
                 if msg.HasField("telemetry"):
                     self.push_to_cloud(msg)
 
+        commands = self.get_commands()
+        # print(commands)
+        for i in range(2,len(commands)):
+            self.translate_command(commands[i])
+        time.sleep(2)
+        
+
     def shutdown(self):
         pass
 
 
 if __name__ == "__main__":
-    CloudService("DHT")   # Runs the service
+    CloudService()   # Runs the service
     

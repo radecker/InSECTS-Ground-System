@@ -25,12 +25,14 @@ class SDRApp(BaseApp):
     def run(self):
         if len(self.command_queue) and "vehicle.sdr_app" in self.tcp_server.connections:
             for msg in self.command_queue:
-                if "vehicle" in msg.destination or "all" == msg.destination:
-                    self.tcp_server.send(msg=msg, dst=msg.destination, client="vehicle.sdr_app")
-        if len(self.telemetry_queue)and "vehicle.sdr_app" in self.tcp_server.connections:
+                if "vehicle." in msg.destination or "all" == msg.destination:
+                    if "ground.sdr_app" not in msg.sender:
+                        self.tcp_server.send(msg=msg, dst=msg.destination, client="vehicle.sdr_app")
+        if len(self.telemetry_queue) and "vehicle.sdr_app" in self.tcp_server.connections:
             for msg in self.telemetry_queue:
-                if "vehicle" in msg.destination or "all" == msg.destination:
-                    self.tcp_server.send(msg=msg, dst=msg.destination, client="vehicle.sdr_app")
+                if "vehicle." in msg.destination or "all" == msg.destination:
+                    if "ground.sdr_app" not in msg.sender:
+                        self.tcp_server.send(msg=msg, dst=msg.destination, client="vehicle.sdr_app")
         if not self.tcp_server.message_queue.empty():
             msg = self.tcp_server.message_queue.get()
             if msg.HasField("command"):

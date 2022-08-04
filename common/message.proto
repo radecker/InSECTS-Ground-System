@@ -30,11 +30,11 @@ message Command {
 }
 
 message SetServoPosition {
-    optional double servo_pos = 1;
+    optional int32 servo_pos = 1;
 }
 
 message SetFanSpeed {
-    optional double fan_speed = 1;
+    optional int32 fan_speed = 1;
 }
 
 message SetFanState {

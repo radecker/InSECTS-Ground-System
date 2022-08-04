@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run --network=host ground.cloud_service
+docker run -v /home/jhu-ep/.aws/credentials:/root/.aws/credentials:ro --network=host ground.cloud_service
