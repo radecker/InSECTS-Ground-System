@@ -76,7 +76,6 @@
                                             <a class="nav-link" href="password.html">Forgot Password</a>
                                         </nav>
                                     </div>
-
                                 </nav>
                             </div>
                             <div class="sb-sidenav-menu-heading">Pages</div>
@@ -99,24 +98,47 @@
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4">
-                        <h1 class="mt-4">Command Interface (Autonomy Mode Enabled)</h1>
+                        <h1 class="mt-4">Command Interface (Autonomy Mode Disabled)</h1>
                         <ol class="breadcrumb mb-4">
                             <li class="breadcrumb-item active">Command Interface</li>
                         </ol>
                         <div class="row">
+
                             <div class = "col-xl-3 col-md-6">
-                                <!-- AUTONOMY STATUS BUTTON     -->
                                 <form class="form-register" method="post">
-                                    <button onclick="commands-manual.html" id="autonomyon" name="submit_button" value="autonomyon" type="submit" class="btn btn-danger btn-lg btn-block">Disable Autonomy Mode</button>
+                                    <button id="autonomyon" name="submit_button" value="autonomyon" type="submit" class="btn btn-success btn-lg btn-block">Enable Autonomy Mode</button>
                                 </form>
-                            
                             </div>
+
+                            <div class = "col-xl-3 col-md-6">
+                                <form class="form-register" method="post">
+                                    <button id="trimpos" name="submit_button" value="trimpos" type="submit" class="btn btn-secondary btn-lg btn-block">Toggle Trim Position</button>
+                                </form>
+                            </div>
+
+                            <div class = "col-xl-3 col-md-6">
+                                <form class="form-register" method="post">
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" placeholder="Enter Fan Speed" aria-label="Fan Speed RPM" name="submit_button"/>
+                                        <button class="btn btn-primary" id="fanspeed" type="submit"><i class="fas fa-cog fa-spin fa-1x fa-fw"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                            
                             <p>
                             </p>
+
                             <div class="card mb-4">
                                 <div class="card-body">
-                                    Click "Disable Autonomy Mode" to manually control the spacecraft trim and fan.
+                                    Click "Enable Autonomy Mode" to allow the spacecraft to operate autonomously.
                                 </div>
+                                <div class="card-body">
+                                    Click on "Toggle Trim Position" to toggle the trim device between 0, 90, and 180 degrees where 0 degrees is closed and 180 degrees is fully opened. 
+                                </div>
+                                <div class="card-body">
+                                    Enter a fan RPM value to control the fan speed.
+                                </div>
+                                
                             </div>
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -147,13 +169,13 @@
                                         </tfoot>
                                         <tbody>
                                             <tr>
-                                                <td>{{request_number_1}}</td>
-                                                <td>{{fan_speed_1}}</td>
-                                                <td>{{autonomy_status_1}}</td>
-                                                <td>{{trim_position_1}}</td>
-                                                <td>{{date_1}}</td>
-                                                <td>{{time_1}}</td>
-                                                </tr>
+                                            <td>{{request_number_1}}</td>
+                                            <td>{{fan_speed_1}}</td>
+                                            <td>{{autonomy_status_1}}</td>
+                                            <td>{{trim_position_1}}</td>
+                                            <td>{{date_1}}</td>
+                                            <td>{{time_1}}</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
