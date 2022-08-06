@@ -116,7 +116,7 @@ class CloudService(BaseApp):
 
         commands = self.get_commands()
         # print(commands)
-        for i in range(2,len(commands)):
+        for i in range(0,len(commands)):
             self.translate_command(commands[i])
         time.sleep(2)
         
