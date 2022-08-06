@@ -1,11 +1,14 @@
-from email.mime import application
 from time import strftime
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect
 import boto3, jinja2, os, datetime
+
 
 currentDateTime=datetime.datetime.now()
 
-counter_request_number = 0
+counter_request_number = 1
+autonomy_status = 1
+fan_speed = 100
+trim_position=0
 
 def python_to_html(python_array, index_value):
     html_parameter=python_array[len(python_array)-index_value]
@@ -31,7 +34,6 @@ def read_dynamoDB(tableName, dbItems, parameter):
     array_dates=[]
     array_times=[]
 
-
     for item in reading['Items']:
         if tableName == 'Spacecraft_Telemetry_to_Ground':
             array_msg_id.append(item['Downlink_Msg_ID'])
@@ -45,12 +47,11 @@ def read_dynamoDB(tableName, dbItems, parameter):
             array_autonomyState.append(item['Autonomy_State'])
             array_dates.append(item['Date'])
             array_times.append(item['Time'])
-        if tableName == 'Ground_Commands_To_Spacecraft':
+        if tableName == 'Ground_Commands_To_Spacecraft' or tableName == 'Ground_to_Spacecraft_Temporary_Queue':
             array_msg_id.append(item['Request_Number'])
             array_fan_speeds.append(item['Fan_Speed'])
             array_trimPosition.append(item['Trim_Position'])
             array_autonomyState.append(item['Autonomy_status'])
-            array_command_sent.append(item['Command_Sent'])
             array_dates.append(item['Date'])
             array_times.append(item['Time'])
 
@@ -80,14 +81,34 @@ def read_dynamoDB(tableName, dbItems, parameter):
     elif parameter == 'command_sent':
         return array_command_sent
     
-
+# creates Flask web application
 application = Flask(__name__)
 
+@application.route('/line_chart.html')
+def line():
+    downlinkTimes = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','time')
+    temp1 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp1')
+    temp2 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp2')
+    temp3 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp3')
+    temp4 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp4')
+    temp5 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp5')
+    
+    line_labels=downlinkTimes
+    line_values=temp1
+    
+    return render_template('line_chart.html', title='Temperature Readings from Sensor 1', min=-100, max=100, labels=line_labels, values=line_values, values2=temp2)
+
+# home directory
 @application.route('/')
 def home():
+    global autonomy_status
+    global fan_speed
+    global trim_position
     global currentDateTime
+    global counter_request_number
     counter = 0
 
+    downlinkID = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','request_number')
     temp1 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp1')
     temp2 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp2')
     temp3 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp3')
@@ -234,30 +255,42 @@ def home():
     # downlinkTime_10=downlinkTimes[len(downlinkTimes)-10],
     )
 
+# home directory alternative url
 @application.route('/index.html')
 def index():
     return home()
 
+# login screen (not functional at this time)
 @application.route('/login.html')
 def login():
     return render_template('login.html')
 
+# password screen (not functional at this time)
 @application.route('/password.html')
 def password():
     return render_template('password.html')
 
+# account registration screen (not functional at this time)
 @application.route('/register.html')
 def register():
     return render_template('register.html')
 
+# pulls data from thermal database to make charts
 @application.route('/thermal-history.html')
 def historicData():
     return render_template('thermal-history.html')
 
+# table that pulls data from thermal database
 @application.route('/thermal-database.html')
 def thermalDatabase():
+    global autonomy_status
+    global fan_speed
+    global trim_position
     global currentDateTime
+    global counter_request_number
 
+    	
+    downlinkID = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','downlinkID')
     temp1 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp1')
     temp2 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp2')
     temp3 = read_dynamoDB('Spacecraft_Telemetry_to_Ground', 'Items','temp3')
@@ -389,9 +422,15 @@ def thermalDatabase():
     # downlinkTime_10=downlinkTimes[len(downlinkTimes)-10],
     )
 
+# ground segment log
+
 @application.route('/ground-segment-log.html')
 def groundSegmentLog():
-    
+    global autonomy_status
+    global fan_speed
+    global trim_position
+    global currentDateTime
+    global counter_request_number
     global currentDateTime
 
     msgId = read_dynamoDB('Ground_Commands_To_Spacecraft', 'Items','request_number')
@@ -492,49 +531,106 @@ def groundSegmentLog():
     time_10=uplinkTimes[len(uplinkTimes)-10],
     )
     
-
+# ground segment status (not functional at this time)
 @application.route('/ground-segment-status.html')
 def groundSegmentStatus():
     return render_template('ground-segment-status.html')
 
-@application.route('/commands-fan-on.html')
-def commandsFanOn():
+# command request form - autonomy mode is off
+@application.route('/commands-manual.html', methods=['GET','POST'])
+def commandsManualOn():
+    global autonomy_status
+    global fan_speed
+    global trim_position
     global currentDateTime
     global counter_request_number
+
+    # msgId = read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','request_number')
+    # fan=read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','fan')
+    # trim=read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','trim')
+    # auto=read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','auto')
+    # uplinkDates=read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','date')
+    # uplinkTimes=read_dynamoDB('Ground_to_Spacecraft_Temporary_Queue', 'Items','time')
+
+
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table(name='Ground_Commands_To_Spacecraft')
     queue = dynamodb.Table(name='Ground_to_Spacecraft_Temporary_Queue')
-       
-    autonomy_status=0
+
     command_sent=False
-    fan_speed=1000
-    trim_position=0
+    autonomy_status = 0
 
-    response = table.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
-
-    addToQueue = queue.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
-    counter_request_number=counter_request_number + 1
-    
+    if request.method == 'POST':
+        currentDateTime=datetime.datetime.now()
+        # Trim position toggle
+        if request.form['submit_button'] == 'trimpos':
+            if trim_position == 0:
+                trim_position = 90
+            elif trim_position == 90:
+                trim_position = 180
+            else:
+                trim_position =0
+            response = table.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Trim_Position': str(trim_position)
+                    }
+                )
+            addToQueue = queue.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Trim_Position': str(trim_position),
+                    }
+                )
+            counter_request_number=counter_request_number + 1 
+            return redirect(f"/commands-manual.html")
+        # Autonomy state turns from 0 to 1
+        elif request.form['submit_button']=='autonomyon':
+            autonomy_status = 1
+            response = table.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Autonomy_status': str(autonomy_status)
+                    }
+                )
+            addToQueue = queue.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Autonomy_status': str(autonomy_status)
+                    }
+                )
+            counter_request_number=counter_request_number + 1 
+            return redirect(f"/autonomy-mode-commands.html")
+        # Fan speed command
+        else:
+            fan_speed = request.form['submit_button']
+            response = table.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Fan_Speed': fan_speed
+                }
+            )
+            addToQueue = queue.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Fan_Speed': fan_speed
+                }
+             )
+            print("Fan speed is "+ str(fan_speed))
+            counter_request_number=counter_request_number + 1 
+            return redirect(f"/commands-manual.html") 
     
     template_dir = os.path.join(os.path.dirname(__file__), 'templates')
     jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -543,93 +639,56 @@ def commandsFanOn():
         t = jinja_env.get_template(template)
         return t.render(params)
 
-    return render_template('commands-fan-on.html')
+    return render_template('commands-manual.html'
+    # ,
+    # request_number_1=msgId[len(msgId)-1],
+    # trim_position_1=trim[len(trim)-1],
+    # autonomy_status_1=auto[len(auto)-1],
+    # fan_speed_1=fan[len(fan)-1],
+    # date_1=uplinkDates[len(uplinkDates)-1],
+    # time_1=uplinkTimes[len(uplinkTimes)-1],
+    )
 
-@application.route('/commands-fan-off.html')
-def commandsFanOff():
-    global currentDateTime
-    global counter_request_number
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table(name='Ground_Commands_To_Spacecraft')
-    queue = dynamodb.Table(name='Ground_to_Spacecraft_Temporary_Queue')
-       
-    autonomy_status=0
-    command_sent=False
-    fan_speed=1000
-    trim_position=0
-
-    response = table.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
-
-    addToQueue = queue.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
-    counter_request_number=counter_request_number + 1
-    
-    
-    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-    jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape=True)
-    def render_str(self, template, **params):
-        t = jinja_env.get_template(template)
-        return t.render(params)
-    return render_template('commands-fan-off.html')
-
-@application.route('/autonomy-mode-commands.html')
+# command request form - manual mode is OFF
+@application.route('/autonomy-mode-commands.html', methods=['GET','POST'])
 def autoCommands():
+    global autonomy_status
+    global fan_speed
+    global trim_position
     global currentDateTime
     global counter_request_number
+
+    currentDateTime=datetime.datetime.now()
+
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table(name='Ground_Commands_To_Spacecraft')
     queue = dynamodb.Table(name='Ground_to_Spacecraft_Temporary_Queue')
        
-    autonomy_status=1
-    command_sent=False
-    fan_speed=1000
-    trim_position=0
+    if request.method == 'POST':
+        # Autonomy state turns from 1 to 0
+        if request.form['submit_button']=='autonomyon':
+            autonomy_status = 0
+            print(str(autonomy_status))
+            response = table.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Autonomy_status': str(autonomy_status)
+                    }
+                )
+            addToQueue = queue.put_item(
+                Item={
+                    'Request_Number': str(counter_request_number),
+                    'Date': str(currentDateTime.date()),
+                    'Time': str(currentDateTime.time()),
+                    'Autonomy_status': str(autonomy_status)
+                    }
+                )
+            counter_request_number=counter_request_number + 1
+            return redirect(f"/commands-manual.html")
 
-    response = table.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
-
-    addToQueue = queue.put_item(
-        Item={
-            'Request_Number': str(counter_request_number),
-            'Autonomy_status': str(autonomy_status),
-            'Command_Sent': str(command_sent),
-            'Date': str(currentDateTime.date()),
-            'Fan_Speed': fan_speed,
-            'Time': str(currentDateTime.time()),
-            'Trim_Position': str(trim_position)
-            }
-        )
     
-    counter_request_number=counter_request_number + 1
     
     
     template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -638,27 +697,21 @@ def autoCommands():
     def render_str(self, template, **params):
         t = jinja_env.get_template(template)
         return t.render(params)
-    return render_template('autonomy-mode-commands.html')
+    if autonomy_status==1:
+        return render_template('autonomy-mode-commands.html')
+    else:
+        return render_template('commands-manual.html')
 
+
+# about the project
 @application.route('/about-insects.html')
 def aboutInsects():
     return render_template('about-insects.html')
 
+# about the team
 @application.route('/about-the-team.html')
 def abouttheteam():
     return render_template('about-the-team.html')
-
-#@application.errorhandler(401)
-#def error401():
-#    return render_template('401.html')
-
-#@application.errorhandler(404)
-#def error404():
-#    return render_template('404.html')
-
-#@application.errorhandler(500)
-#def error500():
-#    return render_template('500.html')
 
 if __name__=="__main__":
     application.run(debug=True)
