@@ -8,9 +8,6 @@ ADD hal_service.py .
 ADD message_pb2.py .
 ADD config_pb2.py .
 ADD BaseApp.py .
-ADD Arduino.py .
-ADD TCPServer.py .
-ADD TCPClient.py .
 ADD UDPClient.py .
 
 # copy requirements file to working directory
